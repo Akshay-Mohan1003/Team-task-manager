@@ -1,0 +1,11 @@
+<select name="status"
+    hx-patch="/api/tasks/{{ task.id }}/status"
+    hx-swap="outerHTML"
+    class="bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-bold text-slate-700 focus:outline-none focus:ring-1 focus:ring-sky-500 cursor-pointer shadow-sm transition-all
+           {% if task.status.value == 'TODO' %}text-slate-500 bg-slate-50
+           {% elif task.status.value == 'IN_PROGRESS' %}text-sky-700 bg-sky-50 border-sky-300
+           {% else %}text-emerald-700 bg-emerald-50 border-emerald-300{% endif %}">
+    <option value="TODO" {% if task.status.value == 'TODO' %}selected{% endif %} class="text-slate-600 bg-white">TODO</option>
+    <option value="IN_PROGRESS" {% if task.status.value == 'IN_PROGRESS' %}selected{% endif %} class="text-sky-700 bg-white">IN PROGRESS</option>
+    <option value="DONE" {% if task.status.value == 'DONE' %}selected{% endif %} class="text-emerald-700 bg-white">DONE</option>
+</select>
