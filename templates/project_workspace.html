@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="flex flex-col h-full gap-6 relative z-10">
+    <!-- Header -->
+    <div class="flex justify-between items-center bg-[#0F111A] border border-[#1E2538] p-6 rounded-2xl shadow-sm shrink-0">
+        <div>
+            <div class="flex items-center text-sky-500 mb-1">
+                <a href="/dashboard" class="text-xs font-bold uppercase tracking-wider hover:text-sky-400 transition-colors">Command Center</a>
+                <svg class="w-4 h-4 mx-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Workspace</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <h1 class="text-2xl font-black text-white">{{ project.name }}</h1>
+                <span class="text-[10px] text-slate-500 font-bold uppercase bg-[#1E2538] px-2 py-0.5 rounded-full border border-[#1E2538]">{{ project.created_at.strftime('%b %d, %Y') if project.created_at else 'Unknown' }}</span>
+                {% set done_tasks = project.tasks | selectattr("status.value", "equalto", "DONE") | list | length %}
+                {% set total_tasks = project.tasks | length %}
+                {% set progress = (done_tasks / total_tasks * 100) | round | int if total_tasks > 0 else 0 %}
+                <span class="text-[10px] font-bold text-sky-400 uppercase tracking-wider">{{ progress }}% Done</span>
+            </div>
+            {% if project.description %}
+            <p class="text-slate-400 text-sm mt-1">{{ project.description }}</p>
+            {% endif %}
+        </div>
+        <div class="flex gap-3">
+            {% if user.role.value == 'ADMIN' %}
+            <a href="/projects/{{ project.id }}/members/add" class="bg-[#1E2538] hover:bg-slate-800 border border-[#1E2538] text-slate-300 font-bold py-2.5 px-4 rounded-xl text-sm transition-all shadow-sm flex items-center hover:text-sky-400">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                Provision Operator
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0">
+        <!-- Main Task List Area -->
+        <div class="lg:col-span-2 bg-[#0F111A] border border-[#1E2538] rounded-2xl shadow-sm flex flex-col overflow-hidden">
+            <div class="p-5 border-b border-[#1E2538] bg-[#0B0E14]/50 flex justify-between items-center">
+                <h2 class="text-lg font-bold text-white flex items-center tracking-wide">
+                    <svg class="w-5 h-5 mr-2 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                    Task Matrix
+                </h2>
+            </div>
+            <div class="flex-1 overflow-y-auto custom-scrollbar p-0">
+                <table class="w-full text-left border-collapse min-w-[500px]">
+                    <thead class="bg-[#1E2538] sticky top-0 z-10 shadow-sm">
+                        <tr class="text-slate-400 text-xs uppercase tracking-wider font-bold">
+                            <th class="p-4 border-b border-[#1E2538]">Objective</th>
+                            <th class="p-4 border-b border-[#1E2538]">Operative</th>
+                            <th class="p-4 border-b border-[#1E2538]">Deadline</th>
+                            <th class="p-4 border-b border-[#1E2538] w-40">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-[#1E2538]">
+                        {% if not project.tasks %}
+                        <tr>
+                            <td colspan="4" class="p-8 text-center text-slate-500 italic">No tasks currently assigned to this workspace.</td>
+                        </tr>
+                        {% endif %}
+                        
+                        {% for task in project.tasks %}
+                        <tr class="hover:bg-[#1E2538]/50 transition-colors group">
+                            <td class="p-4 text-sm font-semibold text-slate-200">{{ task.title }}</td>
+                            <td class="p-4 text-sm text-slate-400 flex items-center font-medium">
+                                {% if task.assignee %}
+                                {% set colors = ['from-red-500 to-rose-600', 'from-amber-400 to-orange-500', 'from-emerald-400 to-teal-500', 'from-blue-500 to-indigo-600', 'from-violet-500 to-purple-600'] %}
+                                {% set color = colors[task.assignee.email|length % 5] %}
+                                <div class="w-8 h-8 rounded-full bg-gradient-to-br {{ color }} flex items-center justify-center text-xs mr-3 text-white font-bold shadow-sm">
+                                    {{ task.assignee.email[0]|upper }}
+                                </div>
+                                <a href="/operators/{{ task.assignee.id }}" class="hover:text-sky-400 truncate max-w-[120px]">{{ task.assignee.email.split('@')[0] | replace('.', ' ') | title }}</a>
+                                {% else %}
+                                <span class="text-slate-600">Unassigned</span>
+                                {% endif %}
+                            </td>
+                            <td class="p-4 text-sm text-slate-500 font-mono text-xs font-semibold">
+                                {{ task.due_date if task.due_date else '---' }}
+                            </td>
+                            <td class="p-4 text-sm">
+                                {% include 'partials/task_status.html' %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Right Side: Create Task & Note -->
+        <div class="flex flex-col gap-6">
+            {% if user.role.value == 'ADMIN' %}
+            <div class="bg-[#0F111A] border border-[#1E2538] rounded-2xl shadow-sm p-5">
+                <h3 class="text-sm font-bold text-slate-200 uppercase tracking-wider mb-4 border-b border-[#1E2538] pb-2">Assign New Task</h3>
+                <form hx-post="/api/tasks" hx-swap="none" hx-on::after-request="location.reload()" class="space-y-4">
+                    <input type="hidden" name="project_id" value="{{ project.id }}">
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Objective</label>
+                        <input type="text" name="title" required class="w-full bg-[#0B0E14] border border-[#1E2538] rounded-lg px-3 py-2 text-sm text-slate-200 focus:border-sky-500 transition-colors">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Operative</label>
+                        <select name="assignee_id" required class="w-full bg-[#0B0E14] border border-[#1E2538] rounded-lg px-3 py-2 text-sm text-slate-200 focus:border-sky-500 transition-colors">
+                            <option value="">Select Operator...</option>
+                            {% for u in users %}
+                            <option value="{{ u.id }}">{{ u.email.split('@')[0] | title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Deadline</label>
+                        <input type="date" name="due_date" class="w-full bg-[#0B0E14] border border-[#1E2538] rounded-lg px-3 py-2 text-sm text-slate-400 focus:border-sky-500 transition-colors" style="color-scheme: dark;">
+                    </div>
+                    <button type="submit" class="w-full bg-[#1E2538] hover:bg-slate-800 text-sky-400 font-bold py-2 px-4 rounded-lg text-sm border border-sky-900/30 transition-colors">Execute Assignment</button>
+                </form>
+            </div>
+
+            <!-- Manage Members Card -->
+            <div class="bg-[#0F111A] border border-[#1E2538] rounded-2xl shadow-sm p-5">
+                <h3 class="text-sm font-bold text-slate-200 uppercase tracking-wider mb-4 border-b border-[#1E2538] pb-2">Project Members</h3>
+                <ul class="space-y-3 mb-4 max-h-[150px] overflow-y-auto custom-scrollbar">
+                    {% if not project.members %}
+                    <li class="text-xs text-slate-500 italic">No members assigned.</li>
+                    {% endif %}
+                    {% for m in project.members %}
+                    <li class="flex items-center justify-between bg-[#0B0E14] p-2 rounded-lg border border-[#1E2538]">
+                        <span class="text-sm font-medium text-slate-200">{{ m.user.email.split('@')[0] | title }}</span>
+                        <button hx-delete="/api/projects/{{ project.id }}/members/{{ m.user_id }}" hx-swap="none" hx-on::after-request="location.reload()" class="text-red-500 hover:text-red-400">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                    </li>
+                    {% endfor %}
+                </ul>
+                <form hx-post="/api/projects/{{ project.id }}/members" hx-swap="none" hx-on::after-request="location.reload()" class="flex gap-2">
+                    <select name="user_id" required class="flex-1 bg-[#0B0E14] border border-[#1E2538] rounded-lg px-2 text-sm text-slate-200 focus:border-sky-500 transition-colors">
+                        <option value="">Select Operator...</option>
+                        {% for u in users %}
+                            <option value="{{ u.id }}">{{ u.email.split('@')[0] | title }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="bg-sky-500 hover:bg-sky-400 text-white font-bold py-1 px-3 rounded-lg text-sm transition-colors">+</button>
+                </form>
+            </div>
+            {% endif %}
+
+            <div class="bg-[#0F111A] border border-[#1E2538] rounded-2xl shadow-sm p-5 flex-1 flex flex-col min-h-0">
+                <h3 class="text-sm font-bold text-slate-200 uppercase tracking-wider mb-4 border-b border-[#1E2538] pb-2 flex justify-between items-center">
+                    Pinned Notes
+                    {% if user.role.value == 'ADMIN' %}
+                    <button onclick="document.getElementById('note-form').classList.toggle('hidden')" class="text-sky-500 hover:text-sky-400"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></button>
+                    {% endif %}
+                </h3>
+                
+                <div class="flex-1 overflow-y-auto custom-scrollbar text-sm text-slate-400">
+                    {% if project.pinned_note %}
+                        <p class="whitespace-pre-wrap">{{ project.pinned_note }}</p>
+                    {% else %}
+                        <p class="italic text-slate-600 text-center mt-10">No intelligence pinned.</p>
+                    {% endif %}
+                </div>
+
+                {% if user.role.value == 'ADMIN' %}
+                <form id="note-form" hx-patch="/api/projects/{{ project.id }}/note" hx-swap="none" hx-on::after-request="location.reload()" class="hidden mt-4 pt-4 border-t border-[#1E2538]">
+                    <textarea name="note" class="w-full bg-[#0B0E14] border border-[#1E2538] rounded-lg px-3 py-2 text-sm text-slate-200 focus:border-sky-500 transition-colors h-24 mb-2" placeholder="Enter notes...">{{ project.pinned_note or '' }}</textarea>
+                    <button type="submit" class="w-full bg-[#1E2538] hover:bg-slate-800 text-slate-300 font-bold py-2 px-4 rounded-lg text-sm transition-colors border border-[#1E2538]">Save Notes</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

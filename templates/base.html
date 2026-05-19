@@ -18,31 +18,31 @@
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #64748b; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900 min-h-screen font-sans selection:bg-sky-200 overflow-hidden">
+<body class="bg-[#0B0E14] text-slate-200 min-h-screen font-sans selection:bg-sky-500/30 overflow-hidden">
     <!-- Ambient Gentle Background Effects -->
-    <div class="fixed inset-0 pointer-events-none z-[-1] bg-gradient-to-br from-white via-slate-50 to-sky-50">
-        <div class="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-sky-200/40 blur-[120px]"></div>
-        <div class="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-100/40 blur-[120px]"></div>
+    <div class="fixed inset-0 pointer-events-none z-[-1] bg-[#0B0E14]">
+        <div class="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-sky-900/10 blur-[120px]"></div>
+        <div class="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-900/10 blur-[120px]"></div>
     </div>
 
     {% if request.cookies.get('access_token') %}
     <div class="flex h-screen w-full">
         <!-- Sidebar Navigation -->
-        <aside class="w-64 bg-white border-r border-slate-200 flex flex-col z-20 shadow-sm">
-            <div class="p-6 border-b border-slate-100">
+        <aside class="w-64 bg-[#0F111A] border-r border-[#1E2538] flex flex-col z-20 shadow-lg">
+            <div class="p-6 border-b border-[#1E2538]">
                 <h1 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-sky-600 to-blue-600 tracking-tight flex items-center">
                     <svg class="w-8 h-8 mr-2 text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                     ETHARA
                 </h1>
             </div>
             <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto custom-scrollbar">
-                <a href="/dashboard" class="flex items-center px-4 py-3 bg-sky-50 text-sky-700 rounded-xl border border-sky-100 font-medium transition-all shadow-sm">
+                <a href="/dashboard" class="flex items-center px-4 py-3 bg-[#1E2538] text-sky-400 rounded-xl border border-sky-900/30 font-medium transition-all shadow-sm">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
                     Dashboard
                 </a>
             </nav>
-            <div class="p-6 border-t border-slate-100 bg-slate-50">
-                <button hx-post="/api/auth/logout" hx-swap="none" class="w-full bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 hover:text-red-600 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-sm flex items-center justify-center">
+            <div class="p-6 border-t border-[#1E2538] bg-[#0B0E14]/50">
+                <button hx-post="/api/auth/logout" hx-swap="none" hx-on::after-request="window.location.href = '/';" class="w-full bg-[#1E2538] hover:bg-slate-800 border border-[#1E2538] text-slate-300 hover:text-red-400 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-sm flex items-center justify-center">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
                     Sign Out
                 </button>
@@ -50,15 +50,63 @@
         </aside>
 
         <!-- Main Content Viewport -->
-        <main class="flex-1 flex flex-col h-screen overflow-hidden">
-            <header class="h-20 border-b border-slate-200 bg-white/80 backdrop-blur-md flex items-center justify-between px-8 z-10 shadow-sm">
-                <h2 class="text-xl font-bold text-slate-800 tracking-wide">Command Center</h2>
-                <div class="flex items-center space-x-4">
-                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-sky-400 to-blue-500 flex items-center justify-center text-sm text-white font-bold shadow-md border border-sky-200">
+        <main class="flex-1 flex flex-col h-screen overflow-hidden bg-[#0B0E14]">
+            <header class="h-20 border-b border-[#1E2538] bg-[#0B0E14]/80 backdrop-blur-md flex items-center justify-between px-8 z-10 shadow-sm relative">
+                <h2 class="text-xl font-bold text-white tracking-wide">Command Center</h2>
+                
+                <!-- 2.2 Top Header Interceptor: Profile Dropdown -->
+                <div class="relative inline-block" id="profile-helm-container">
+                    <button id="profile-helm-trigger" class="w-10 h-10 rounded-full bg-gradient-to-br from-sky-400 to-blue-500 flex items-center justify-center text-sm text-white font-bold shadow-md border border-sky-200 hover:from-sky-500 hover:to-blue-600 transition-colors">
                         OP
+                    </button>
+                    
+                    <!-- Dropdown Display Box -->
+                    <div id="profile-helm-dropdown" class="hidden absolute right-0 mt-2 w-56 bg-[#0F111A] border border-[#1E2538] rounded-xl shadow-2xl z-50 overflow-hidden">
+                        <div class="p-4 border-b border-[#1E2538] bg-[#0B0E14]">
+                            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Active Session</p>
+                            <p class="text-sm font-semibold text-slate-200 truncate" id="active-user-email">
+                                {% if user %}
+                                    {{ user.email }}
+                                {% else %}
+                                    Active Operator
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="py-2">
+                            <a href="#" class="block px-4 py-2 text-sm text-slate-400 hover:bg-[#1E2538] hover:text-sky-400 transition-colors">Account Configuration</a>
+                            <a href="#" class="block px-4 py-2 text-sm text-slate-400 hover:bg-[#1E2538] hover:text-sky-400 transition-colors">API Access Keys</a>
+                        </div>
+                        <div class="border-t border-[#1E2538] py-2">
+                            <button hx-post="/api/auth/logout" hx-swap="none" hx-on::after-request="window.location.href = '/';" class="w-full text-left px-4 py-2 text-sm text-red-500 font-semibold hover:bg-red-500/10 transition-colors flex items-center">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                                Terminate Session
+                            </button>
+                        </div>
                     </div>
                 </div>
             </header>
+            
+            <script>
+                // ProfileHelm Vanilla JS Logic (Event Delegation for HTMX)
+                document.addEventListener('click', (e) => {
+                    const dropdown = document.getElementById('profile-helm-dropdown');
+                    const trigger = document.getElementById('profile-helm-trigger');
+                    
+                    if (!dropdown || !trigger) return;
+
+                    // If click is on trigger, toggle dropdown
+                    if (trigger.contains(e.target)) {
+                        e.preventDefault();
+                        dropdown.classList.toggle('hidden');
+                        return;
+                    }
+
+                    // If click is outside dropdown AND outside trigger, close it
+                    if (!dropdown.contains(e.target)) {
+                        dropdown.classList.add('hidden');
+                    }
+                });
+            </script>
             <div class="flex-1 overflow-y-auto p-6 md:p-10 custom-scrollbar relative">
                 {% if error %}
                 <div class="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl mb-6 text-center shadow-sm">
@@ -80,7 +128,7 @@
             
             <h2 class="text-3xl font-black mb-8 text-center text-slate-800 relative z-10 tracking-tight">Portal Access</h2>
             
-            <form hx-post="/api/auth/login" hx-swap="none" hx-on::after-request="if(!event.detail.successful) { alert(JSON.parse(event.detail.xhr.response).detail || 'Login failed'); }" class="space-y-5 relative z-10">
+            <form hx-post="/api/auth/login" hx-swap="none" hx-on::after-request="if(event.detail.successful) { window.location.href = '/dashboard'; } else { alert(JSON.parse(event.detail.xhr.response).detail || 'Login failed'); }" class="space-y-5 relative z-10">
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 ml-1">Email Designation</label>
                     <input type="email" name="email" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all shadow-sm">

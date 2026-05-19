@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="flex flex-col h-full gap-6 relative z-10">
+    <!-- Profile Header -->
+    <div class="flex justify-between items-center bg-[#0F111A] border border-[#1E2538] p-6 rounded-2xl shadow-sm shrink-0">
+        <div class="flex items-center">
+            {% set colors = ['from-red-500 to-rose-600', 'from-amber-400 to-orange-500', 'from-emerald-400 to-teal-500', 'from-blue-500 to-indigo-600', 'from-violet-500 to-purple-600'] %}
+            {% set color = colors[operator.email|length % 5] %}
+            <div class="w-16 h-16 rounded-full bg-gradient-to-br {{ color }} flex items-center justify-center text-2xl mr-6 text-white font-black shadow-lg border-2 border-[#1E2538]">
+                {{ operator.email[0]|upper }}
+            </div>
+            <div>
+                <div class="flex items-center text-sky-500 mb-1">
+                    <a href="/dashboard" class="text-xs font-bold uppercase tracking-wider hover:text-sky-400 transition-colors">Command Center</a>
+                    <svg class="w-4 h-4 mx-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Operative Profile</span>
+                </div>
+                <h1 class="text-2xl font-black text-white">{{ operator.email.split('@')[0] | replace('.', ' ') | title }}</h1>
+                <p class="text-slate-400 text-sm mt-1 flex items-center">
+                    <svg class="w-4 h-4 mr-1 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                    {{ operator.email }}
+                </p>
+                <p class="text-slate-500 text-xs mt-1 font-bold">
+                    JOINED: {{ operator.created_at.strftime('%b %d, %Y') if operator.created_at else 'Legacy' }}
+                </p>
+            </div>
+        </div>
+        <div>
+            <span class="px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-[#1E2538] text-slate-300 border border-slate-700">
+                {{ operator.role.value }}
+            </span>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0">
+        <!-- Operator Tasks Matrix -->
+        <div class="lg:col-span-2 bg-[#0F111A] border border-[#1E2538] rounded-2xl shadow-sm flex flex-col min-h-0 overflow-hidden">
+            <div class="p-5 border-b border-[#1E2538] bg-[#0B0E14]/50 flex justify-between items-center">
+                <h2 class="text-lg font-bold text-white flex items-center tracking-wide">
+                    <svg class="w-5 h-5 mr-2 text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                    Active Engagements
+                </h2>
+            </div>
+            <div class="flex-1 overflow-y-auto custom-scrollbar p-0">
+                <table class="w-full text-left border-collapse min-w-[500px]">
+                    <thead class="bg-[#1E2538] sticky top-0 z-10 shadow-sm">
+                        <tr class="text-slate-400 text-xs uppercase tracking-wider font-bold">
+                            <th class="p-4 border-b border-[#1E2538]">Objective</th>
+                            <th class="p-4 border-b border-[#1E2538]">Project Workspace</th>
+                            <th class="p-4 border-b border-[#1E2538]">Deadline</th>
+                            <th class="p-4 border-b border-[#1E2538] w-40">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-[#1E2538]">
+                        {% if not operator.tasks_assigned %}
+                        <tr>
+                            <td colspan="4" class="p-8 text-center text-slate-500 italic">No tasks currently assigned to this operative.</td>
+                        </tr>
+                        {% endif %}
+                        
+                        {% for task in operator.tasks_assigned %}
+                        <tr class="hover:bg-[#1E2538]/50 transition-colors group">
+                            <td class="p-4 text-sm font-semibold text-slate-200">{{ task.title }}</td>
+                            <td class="p-4 text-sm">
+                                <a href="/projects/{{ task.project.id if task.project else '#' }}" class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-[#1E2538] text-sky-400 border border-sky-900/30 hover:bg-slate-800 transition-colors">
+                                    {{ task.project.name if task.project else 'N/A' }}
+                                </a>
+                            </td>
+                            <td class="p-4 text-sm text-slate-500 font-mono text-xs font-semibold">
+                                {{ task.due_date if task.due_date else '---' }}
+                            </td>
+                            <td class="p-4 text-sm">
+                                {% include 'partials/task_status.html' %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Project Memberships & Admin Controls -->
+        <div class="flex flex-col gap-6">
+            <div class="bg-[#0F111A] border border-[#1E2538] rounded-2xl shadow-sm flex flex-col flex-1 min-h-0">
+                <div class="p-5 border-b border-[#1E2538] bg-[#0B0E14]/50 flex justify-between items-center">
+                    <h2 class="text-sm font-bold text-slate-200 uppercase tracking-wider">Project Access</h2>
+                </div>
+                <div class="p-5 flex-1 overflow-y-auto custom-scrollbar">
+                    <ul class="space-y-3">
+                        {% if not operator.project_memberships %}
+                        <li class="text-xs text-slate-500 italic">No project access.</li>
+                        {% endif %}
+                        {% for pm in operator.project_memberships %}
+                        <li class="flex items-center justify-between bg-[#0B0E14] p-3 rounded-lg border border-[#1E2538]">
+                            <a href="/projects/{{ pm.project.id }}" class="text-sm font-bold text-sky-400 hover:text-sky-300">{{ pm.project.name }}</a>
+                            {% if user.role.value == 'ADMIN' %}
+                            <button hx-delete="/api/projects/{{ pm.project.id }}/members/{{ operator.id }}" hx-swap="none" hx-on::after-request="location.reload()" class="text-red-500 hover:text-red-400 ml-2" title="Revoke Access">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% if user.role.value == 'ADMIN' %}
+                <div class="p-4 border-t border-[#1E2538] bg-[#0B0E14]/30">
+                    <form hx-post="/api/projects/assignment/members" hx-swap="none" hx-on::after-request="location.reload()" class="flex flex-col gap-2">
+                        <input type="hidden" name="user_id" value="{{ operator.id }}">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase">Assign to Project</label>
+                        <div class="flex gap-2">
+                            <select name="project_id" required class="flex-1 bg-[#0B0E14] border border-[#1E2538] rounded-lg px-2 py-1.5 text-sm text-slate-200 focus:border-sky-500 transition-colors">
+                                <option value="">Select Project...</option>
+                                {% for p in all_projects %}
+                                    <option value="{{ p.id }}">{{ p.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <!-- Use JS to submit to the dynamic URL -->
+                            <button type="button" onclick="const p = this.previousElementSibling.value; if(p) { fetch('/api/projects/'+p+'/members', {method: 'POST', headers:{'Content-Type': 'application/x-www-form-urlencoded'}, body: 'user_id={{ operator.id }}'}).then(()=>location.reload()) }" class="bg-sky-500 hover:bg-sky-400 text-white font-bold py-1.5 px-3 rounded-lg text-sm transition-colors">+</button>
+                        </div>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

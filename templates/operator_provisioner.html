@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto mt-10 bg-[#0F111A] border border-[#1E2538] rounded-2xl shadow-xl overflow-hidden relative z-10">
+    <div class="p-8 border-b border-[#1E2538] bg-[#0B0E14]/50">
+        <div class="flex items-center text-sky-500 mb-3">
+            <a href="/dashboard" class="text-xs font-bold uppercase tracking-wider hover:text-sky-400 transition-colors">Command Center</a>
+            <svg class="w-4 h-4 mx-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            <a href="/projects/{{ project.id }}" class="text-xs font-bold uppercase tracking-wider hover:text-sky-400 transition-colors">{{ project.name }}</a>
+            <svg class="w-4 h-4 mx-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Access Management</span>
+        </div>
+        <h2 class="text-2xl font-black text-white flex items-center tracking-wide">
+            <svg class="w-6 h-6 mr-3 text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+            Operator Provisioner
+        </h2>
+        <p class="text-slate-400 text-sm mt-2">Grant or revoke operator access to <span class="font-bold text-slate-300">{{ project.name }}</span>.</p>
+    </div>
+
+    <!-- For now, we don't have a POST endpoint in /projects to add members,
+         so this represents the UI for it. Admin can invite or remove users here. -->
+    <div class="p-8">
+        <div class="bg-amber-900/20 border border-amber-500/30 text-amber-500 p-4 rounded-xl mb-6 flex items-start">
+            <svg class="w-5 h-5 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <div class="text-sm">
+                <p class="font-bold">Access Warning</p>
+                <p class="mt-1 text-amber-600/80">Only Global System Administrators can permanently inject members into this project namespace.</p>
+            </div>
+        </div>
+
+        <form class="space-y-6 opacity-50 pointer-events-none">
+            <!-- Simulated Form: The API for member management on projects is not yet built, but UI is provided as requested -->
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 ml-1">Select Operator</label>
+                <select class="w-full bg-[#0B0E14] border border-[#1E2538] rounded-xl px-4 py-3 text-slate-500 focus:outline-none transition-all shadow-sm">
+                    <option>Loading operators...</option>
+                </select>
+            </div>
+            
+            <div class="pt-4 flex justify-end gap-3 border-t border-[#1E2538]">
+                <a href="/projects/{{ project.id }}" class="px-6 py-3 rounded-xl border border-[#1E2538] text-slate-400 hover:text-white hover:bg-[#1E2538] font-bold text-sm transition-colors">Return</a>
+                <button type="button" class="bg-[#1E2538] text-slate-500 font-bold py-3 px-6 rounded-xl text-sm cursor-not-allowed">Inject Member</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -4,7 +4,7 @@ import bcrypt
 from jose import jwt, JWTError
 from datetime import datetime, timedelta
 from app.database import get_db
-from app.models import User, RoleEnum
+from app.models import User, RoleEnum, ProjectMember
 from app.config import SECRET_KEY, ALGORITHM
 
 router = APIRouter()
@@ -47,6 +47,22 @@ def require_admin(current_user: User = Depends(get_current_user)):
         raise HTTPException(status_code=403, detail="Admin access required")
     return current_user
 
+def verify_project_admin(project_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if current_user.role == RoleEnum.ADMIN:
+        return current_user  # Global admins bypass project-level check
+        
+    membership = db.query(ProjectMember).filter(
+        ProjectMember.project_id == project_id,
+        ProjectMember.user_id == current_user.id
+    ).first()
+    
+    if not membership or membership.role != 'Admin':
+        raise HTTPException(
+            status_code=403, 
+            detail="Access Denied: Action requires System Administrator privileges."
+        )
+    return current_user
+
 @router.post("/register")
 def register(email: str = Form(...), password: str = Form(...), role: RoleEnum = Form(RoleEnum.MEMBER), db: Session = Depends(get_db)):
     db_user = db.query(User).filter(User.email == email).first()
@@ -57,7 +73,7 @@ def register(email: str = Form(...), password: str = Form(...), role: RoleEnum =
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
-    return {"message": "Registered"}
+    return {"message": "Registered", "success": True}
 
 @router.post("/login")
 def login(response: Response, email: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
@@ -72,17 +88,13 @@ def login(response: Response, email: str = Form(...), password: str = Form(...),
         httponly=True,
         max_age=24 * 3600,
         samesite="lax",
-        secure=False 
     )
-    # Using HX-Redirect for seamless login flow
-    response.headers["HX-Redirect"] = "/dashboard"
-    return {"message": "Login successful"}
+    return {"message": "Login successful", "success": True}
 
 @router.post("/logout")
 def logout(response: Response):
     response.delete_cookie("access_token")
-    response.headers["HX-Redirect"] = "/"
-    return {"message": "Logged out"}
+    return {"message": "Logged out", "success": True}
 
 @router.delete("/users/{user_id}")
 def delete_user(request: Request, user_id: str, db: Session = Depends(get_db), admin: User = Depends(require_admin)):
